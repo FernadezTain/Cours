@@ -229,211 +229,105 @@ const spotlightStatus = document.getElementById("archiveSpotlightStatus");
 const spotlightList = document.getElementById("archiveSpotlightList");
 const bioCards = Array.from(document.querySelectorAll(".bio-card"));
 
-// ─── Локальная фильтрация карточек ────────────────────────────────────────────
+function highlight(text, query) {
+  if (!query) return text;
+  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return text.replace(new RegExp(`(${escaped})`, "gi"), "<mark>$1</mark>");
+}
 
-function filterLocalCards(query) {
-  let visibleCount = 0;
-  bioCards.forEach((card) => {
-    const matched = query === "" || card.textContent.toLowerCase().includes(query.toLowerCase());
-    card.classList.toggle("is-hidden", !matched);
-    if (matched) visibleCount += 1;
+function collectBioData() {
+  return bioCards.map((card) => {
+    const heading = card.querySelector("h3");
+    const year = card.querySelector(".archive-year");
+    const paragraphs = Array.from(card.querySelectorAll("p"));
+    const facts = Array.from(card.querySelectorAll(".fact-list li"));
+    return {
+      name: heading ? heading.textContent.trim() : "",
+      year: year ? year.textContent.trim() : "",
+      summary: paragraphs[0] ? paragraphs[0].textContent.trim() : "",
+      facts: facts.map((li) => li.textContent.trim()),
+      fullText: card.textContent.toLowerCase(),
+      card
+    };
   });
-  return visibleCount;
 }
 
-// ─── AI-поиск через Anthropic API + web_search ────────────────────────────────
+function renderSpotlight(matches, query) {
+  if (!spotlightList || !spotlightStatus) return;
 
-let searchDebounceTimer = null;
-let currentSearchAbort = null;
-
-async function searchWithAI(query) {
-  if (currentSearchAbort) {
-    currentSearchAbort.abort();
-  }
-  currentSearchAbort = new AbortController();
-  const signal = currentSearchAbort.signal;
-
-  showSpotlightLoading(query);
-
-  const systemPrompt = `Ты — архивист речного флота реки Лена. Твоя задача — найти и изложить биографическую информацию о речниках, капитанах, механиках, судах Ленского пароходства и связанных с ними людях.
-
-При ответе ВСЕГДА используй инструмент web_search чтобы найти актуальную информацию в интернете, даже если запрос кажется тебе знакомым. Ищи на русском языке.
-
-Ответ верни СТРОГО в формате JSON (без markdown-обёртки, без пояснений за пределами JSON):
-{
-  "found": true,
-  "results": [
-    {
-      "name": "Полное имя человека или название судна",
-      "year": "Год рождения или год постройки судна (только цифры)",
-      "summary": "Краткая биография 2-3 предложения",
-      "facts": ["Факт 1", "Факт 2", "Факт 3"],
-      "source": "Название источника или сайта"
-    }
-  ],
-  "note": "Короткая заметка об источниках поиска (1 предложение)"
-}
-
-Если информации нет ни в интернете, ни в твоих знаниях — верни:
-{ "found": false, "message": "Объяснение на русском языке" }
-
-Фокус: река Лена, Ленское пароходство, Киренск, речники, капитаны, пароходы, теплоходы, буксиры. Ищи до 3 результатов максимум.`;
-
-  try {
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "anthropic-dangerous-direct-browser-ipc": "true"
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-5",
-        max_tokens: 1000,
-        system: systemPrompt,
-        tools: [{ type: "web_search_20250305", name: "web_search" }],
-        messages: [
-          {
-            role: "user",
-            content: `Найди биографическую информацию о: "${query}". Это может быть капитан, речник, судно или событие связанное с рекой Лена и Ленским пароходством. Обязательно поищи в интернете.`
-          }
-        ]
-      })
-    });
-
-    if (signal.aborted) return;
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      const errMsg = data?.error?.message || `HTTP ${response.status}`;
-      throw new Error(errMsg);
-    }
-
-    // Извлекаем текстовый ответ из всех блоков
-    const textContent = data.content
-      .filter(block => block.type === "text")
-      .map(block => block.text)
-      .join("");
-
-    // Парсим JSON из ответа
-    const jsonMatch = textContent.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error("Нет JSON в ответе: " + textContent.slice(0, 120));
-
-    const parsed = JSON.parse(jsonMatch[0]);
-    renderSpotlightAI(parsed, query);
-
-  } catch (err) {
-    if (err.name === "AbortError") return;
-    console.error("[AI Search] Ошибка:", err);
-    renderSpotlightError(query, err.message);
-  }
-}
-
-// ─── Отрисовка состояний spotlight ───────────────────────────────────────────
-
-function showSpotlightLoading(query) {
-  if (!spotlightStatus || !spotlightList) return;
-  spotlightStatus.innerHTML = `<span class="search-spinner"></span> Ищу в интернете: «${query}»…`;
-  spotlightList.innerHTML = `
-    <div class="ai-loading-card">
-      <div class="ai-loading-dots"><span></span><span></span><span></span></div>
-      <p>Запрос к архиву и открытым источникам…</p>
-    </div>`;
-}
-
-function renderSpotlightAI(data, query) {
-  if (!spotlightStatus || !spotlightList) return;
-
-  if (!data.found) {
-    spotlightStatus.textContent = "Поиск завершён";
-    spotlightList.innerHTML = `
-      <div class="ai-empty-card">
-        <p>По запросу «${query}» информация в открытых источниках не найдена.</p>
-        <p class="ai-note">${data.message || ""}</p>
-      </div>`;
+  if (!query) {
+    spotlightStatus.textContent = "Введите фамилию капитана, название судна или важную деталь биографии.";
+    spotlightList.innerHTML = "";
     return;
   }
 
-  const results = data.results || [];
-  spotlightStatus.textContent = `Найдено в интернете: ${results.length} ${results.length === 1 ? "результат" : results.length < 5 ? "результата" : "результатов"}`;
+  if (matches.length === 0) {
+    spotlightStatus.textContent = `По запросу «${query}» ничего не найдено`;
+    spotlightList.innerHTML = "";
+    return;
+  }
 
-  const noteHtml = data.note
-    ? `<p class="ai-search-note">🔍 ${data.note}</p>`
-    : "";
+  spotlightStatus.textContent = `Найдено: ${matches.length} ${matches.length === 1 ? "биография" : matches.length < 5 ? "биографии" : "биографий"}`;
 
-  spotlightList.innerHTML = noteHtml + results.map((bio) => {
-    const factsHtml = (bio.facts || []).length
-      ? `<ul class="spotlight-facts">${bio.facts.map(f => `<li>${f}</li>`).join("")}</ul>`
+  spotlightList.innerHTML = matches.map((bio) => {
+    const factsHtml = bio.facts.length
+      ? `<ul class="spotlight-facts">${bio.facts.map((f) => `<li>${highlight(f, query)}</li>`).join("")}</ul>`
       : "";
-    const sourceHtml = bio.source
-      ? `<span class="ai-source-tag">Источник: ${bio.source}</span>`
-      : "";
-
     return `
-      <article class="archive-result-card ai-result-card">
-        <div class="archive-result-meta ai-badge">
-          ${bio.year ? `<span>${bio.year}</span>` : ""}
-          <span class="ai-label">Из интернета</span>
-        </div>
-        <h4>${bio.name || ""}</h4>
-        <p>${bio.summary || ""}</p>
+      <article class="archive-result-card">
+        <div class="archive-result-meta">${highlight(bio.year, query)}</div>
+        <h4>${highlight(bio.name, query)}</h4>
+        <p>${highlight(bio.summary, query)}</p>
         ${factsHtml}
-        ${sourceHtml}
       </article>`;
   }).join("");
+
+  spotlightList.querySelectorAll(".archive-result-card").forEach((el, index) => {
+    el.style.cursor = "pointer";
+    el.addEventListener("click", () => {
+      const target = matches[index]?.card;
+      if (target) {
+        target.scrollIntoView({ behavior: "smooth", block: "center" });
+        target.classList.add("is-highlighted");
+        setTimeout(() => target.classList.remove("is-highlighted"), 1800);
+      }
+    });
+  });
 }
 
-function renderSpotlightError(query, message) {
-  if (!spotlightStatus || !spotlightList) return;
-  spotlightStatus.textContent = "Ошибка поиска";
-  spotlightList.innerHTML = `
-    <div class="ai-empty-card">
-      <p>Не удалось получить данные из интернета.</p>
-      <p class="ai-note">${message}</p>
-    </div>`;
-}
+if (bioSearchInput && bioSearchClear && bioSearchStatus && bioCards.length) {
+  const bios = collectBioData();
 
-function resetSpotlight() {
-  if (!spotlightStatus || !spotlightList) return;
-  spotlightStatus.textContent = "Введите фамилию капитана, название судна или важную деталь биографии, и сайт покажет найденный материал прямо здесь.";
-  spotlightList.innerHTML = "";
-}
-
-// ─── Инициализация ────────────────────────────────────────────────────────────
-
-if (bioSearchInput && bioSearchClear && bioSearchStatus) {
-
-  bioSearchInput.addEventListener("input", () => {
+  const searchBios = () => {
     const query = bioSearchInput.value.trim();
+    const q = query.toLowerCase();
+    let visibleCount = 0;
+    const matches = [];
 
-    // Локальная фильтрация карточек мгновенно
-    const localCount = filterLocalCards(query);
+    bios.forEach((bio) => {
+      const matched = !q || bio.fullText.includes(q);
+      bio.card.classList.toggle("is-hidden", !matched);
+      if (matched) {
+        visibleCount += 1;
+        if (q) matches.push(bio);
+      }
+    });
 
-    if (query === "") {
+    if (!q) {
       bioSearchStatus.textContent = "Показаны все биографии";
-      resetSpotlight();
-      clearTimeout(searchDebounceTimer);
-      return;
+    } else if (visibleCount === 0) {
+      bioSearchStatus.textContent = `По запросу «${query}» ничего не найдено`;
+    } else {
+      bioSearchStatus.textContent = `Найдено биографий: ${visibleCount}`;
     }
 
-    bioSearchStatus.textContent = localCount > 0
-      ? `В архиве: ${localCount} биографий — также ищу в интернете…`
-      : "Ищу в интернете…";
+    renderSpotlight(matches, query);
+  };
 
-    // Запускаем AI-поиск с задержкой чтобы не стрелять на каждую букву
-    clearTimeout(searchDebounceTimer);
-    searchDebounceTimer = setTimeout(() => {
-      searchWithAI(query);
-    }, 700);
-  });
-
+  bioSearchInput.addEventListener("input", searchBios);
   bioSearchClear.addEventListener("click", () => {
     bioSearchInput.value = "";
-    filterLocalCards("");
-    bioSearchStatus.textContent = "Показаны все биографии";
-    resetSpotlight();
-    clearTimeout(searchDebounceTimer);
-    if (currentSearchAbort) currentSearchAbort.abort();
+    searchBios();
     bioSearchInput.focus();
   });
 }
