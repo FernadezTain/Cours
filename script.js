@@ -227,11 +227,16 @@ requestAnimationFrame(animatePointerReset);
   const topbar = document.querySelector(".topbar");
   if (!topbar) return;
 
-  // Появляется сразу с анимацией при загрузке
+  // Сброс скролла в самый верх до любой анимации
+  if (window.scrollY > 0) {
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }
+  document.documentElement.classList.add("page-ready");
+
+  // Появляется с анимацией при загрузке
   requestAnimationFrame(() => {
     setTimeout(() => topbar.classList.add("is-visible"), 80);
   });
-
   let lastScroll = window.scrollY;
 
   window.addEventListener("scroll", () => {
