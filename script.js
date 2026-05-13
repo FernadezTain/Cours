@@ -318,10 +318,10 @@ requestAnimationFrame(animatePointerReset);
       });
       currentLang = to;
       if (to === "ru") {
-        label.textContent = "Translate to English";
+        label.textContent = "Перевести на Английский";
         document.documentElement.lang = "ru";
       } else {
-        label.textContent = "Перевести на русский";
+        label.textContent = "Translate to Russian";
         document.documentElement.lang = "en";
       }
     }, 310);
