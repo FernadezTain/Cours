@@ -1,55 +1,117 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Суда Лены — архив памяти о капитанах и речниках</title>
-  <meta name="description" content="Сайт о судах на реке Лена, названных в честь речников. Биографии, архивные факты, фотографии и интерактивная сцена с судном.">
+  <title>Ships of the Lena — a memory archive of captains and river workers</title>
+  <meta name="description" content="A site about ships on the Lena River named after river workers. Biographies, archival facts, photographs and an interactive ship scene.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600;7..72,700&family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <style>
+    /* ── Translate button ─────────────────────────────────────── */
+    .lang-btn-wrap {
+      position: fixed;
+      bottom: 32px;
+      right: 32px;
+      z-index: 9999;
+    }
+    .lang-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 13px 22px;
+      border: none;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #17384d 0%, #0d2230 100%);
+      color: #f3f7f8;
+      font-family: "Manrope", sans-serif;
+      font-size: 0.92rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      cursor: pointer;
+      box-shadow: 0 8px 28px rgba(13,34,48,0.35), 0 2px 8px rgba(13,34,48,0.18);
+      transition: transform 160ms ease, box-shadow 160ms ease;
+      outline: none;
+      white-space: nowrap;
+    }
+    .lang-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 36px rgba(13,34,48,0.42), 0 3px 10px rgba(13,34,48,0.22);
+    }
+    .lang-btn svg {
+      flex-shrink: 0;
+      transition: transform 320ms ease;
+    }
+    .lang-btn:hover svg {
+      transform: rotate(18deg) scale(1.15);
+    }
+    /* Particle canvas overlay */
+    #disperseCanvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 9998;
+      opacity: 0;
+      transition: opacity 80ms;
+    }
+    #disperseCanvas.active { opacity: 1; }
+    /* Text nodes dissolve class */
+    .dissolve-text {
+      transition: filter 0.55s ease, opacity 0.55s ease;
+    }
+    .dissolve-text.dissolving {
+      filter: blur(14px) brightness(1.6);
+      opacity: 0;
+    }
+  </style>
 </head>
 <body>
   <div class="site-bg"></div>
+  <canvas id="disperseCanvas"></canvas>
+  <div class="lang-btn-wrap">
+    <button class="lang-btn" id="langToggle" aria-label="Translate to Russian">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      <span id="langLabel">Перевести на русский</span>
+    </button>
+  </div>
 
   <header class="hero" id="top">
     <nav class="topbar">
       <a class="brand" href="#top">
-        <span class="brand-kicker">Архив Лены</span>
-        <span class="brand-title">Суда, названные в честь капитанов</span>
+        <span class="brand-kicker" data-en="Lena Archive" data-ru="Архив Лены">Lena Archive</span>
+        <span class="brand-title" data-en="Ships named after captains" data-ru="Суда, названные в честь капитанов">Ships named after captains</span>
       </a>
       <div class="nav-links">
-        <a href="#about">О сайте</a>
-        <a href="#archive">Архив</a>
-        <a href="#gallery">Фотографии</a>
-        <a href="#sources">Источники</a>
+        <a href="#about" data-en="About" data-ru="О сайте">About</a>
+        <a href="#archive" data-en="Archive" data-ru="Архив">Archive</a>
+        <a href="#gallery" data-en="Photos" data-ru="Фотографии">Photos</a>
+        <a href="#sources" data-en="Sources" data-ru="Источники">Sources</a>
       </div>
     </nav>
 
     <div class="hero-layout">
       <section class="hero-copy">
-        <p class="section-mark">История речного флота</p>
-        <h1>Не просто названия на борту, а судьбы людей, которые держали Лену на ходу.</h1>
-        <p class="hero-text">
-          Этот сайт посвящён выдающимся речникам, в честь которых были названы суда на реке Лена.
-          Здесь собраны биографии, фотографии, имена судов и живое ощущение реки —
-          цифровой архив памяти о людях, которые остались в истории Ленского пароходства.
-        </p>
+        <p class="section-mark" data-en="History of the River Fleet" data-ru="История речного флота">History of the River Fleet</p>
+        <h1 data-en="Not just names on a hull — lives of the people who kept the Lena moving." data-ru="Не просто названия на борту, а судьбы людей, которые держали Лену на ходу.">Not just names on a hull — lives of the people who kept the Lena moving.</h1>
+        <p class="hero-text" data-en="This site is dedicated to the outstanding river workers after whom ships on the Lena River were named. Here you will find biographies, photographs, vessel names and a living sense of the river — a digital memory archive of the people who left their mark on the Lena Shipping Company." data-ru="Этот сайт посвящён выдающимся речникам, в честь которых были названы суда на реке Лена. Здесь собраны биографии, фотографии, имена судов и живое ощущение реки — цифровой архив памяти о людях, которые остались в истории Ленского пароходства.">This site is dedicated to the outstanding river workers after whom ships on the Lena River were named. Here you will find biographies, photographs, vessel names and a living sense of the river — a digital memory archive of the people who left their mark on the Lena Shipping Company.</p>
         <div class="hero-actions">
-          <a class="button button-dark" href="#archive">Открыть архив</a>
-          <a class="button button-light" href="#gallery">Смотреть суда</a>
+          <a class="button button-dark" href="#archive" data-en="Open the archive" data-ru="Открыть архив">Open the archive</a>
+          <a class="button button-light" href="#gallery" data-en="View ships" data-ru="Смотреть суда">View ships</a>
         </div>
       </section>
 
       <aside class="hero-note">
         <div class="hero-note-card">
-          <span class="hero-note-label">Что внутри</span>
-          <p>Семь подтверждённых биографий, реальные фото и интерактивная сцена с судном.</p>
+          <span class="hero-note-label" data-en="What's inside" data-ru="Что внутри">What's inside</span>
+          <p data-en="Seven confirmed biographies, real photographs and an interactive ship scene." data-ru="Семь подтверждённых биографий, реальные фото и интерактивная сцена с судном.">Seven confirmed biographies, real photographs and an interactive ship scene.</p>
           <ul>
-            <li>Капитаны и речники Киренска</li>
-            <li>Маршрут памяти вдоль Лены</li>
-            <li>Архивные документы колледжа</li>
+            <li data-en="Captains and river workers of Kirensk" data-ru="Капитаны и речники Киренска">Captains and river workers of Kirensk</li>
+            <li data-en="A memory route along the Lena" data-ru="Маршрут памяти вдоль Лены">A memory route along the Lena</li>
+            <li data-en="Archival documents from the college" data-ru="Архивные документы колледжа">Archival documents from the college</li>
           </ul>
         </div>
       </aside>
@@ -57,10 +119,10 @@
       <section class="hero-scene">
         <div class="scene-frame">
           <div class="scene-caption">
-            <span>Интерактивная сцена</span>
-            <p>Наведите курсор: судно мягко реагирует на движение и остаётся главным акцентом страницы.</p>
+            <span data-en="Interactive scene" data-ru="Интерактивная сцена">Interactive scene</span>
+            <p data-en="Move your cursor: the ship gently responds to movement and remains the centrepiece of the page." data-ru="Наведите курсор: судно мягко реагирует на движение и остаётся главным акцентом страницы.">Move your cursor: the ship gently responds to movement and remains the centrepiece of the page.</p>
           </div>
-          <canvas id="shipScene" aria-label="Интерактивная сцена с речным судном"></canvas>
+          <canvas id="shipScene" aria-label="Interactive scene with a river ship"></canvas>
         </div>
       </section>
     </div>
@@ -69,45 +131,34 @@
   <main>
     <section class="section intro" id="about">
       <div class="section-heading">
-        <p class="section-mark">О сайте</p>
-        <h2>Архив имён: люди, которые оставили после себя профессиональную репутацию, учеников и память.</h2>
+        <p class="section-mark" data-en="About the site" data-ru="О сайте">About the site</p>
+        <h2 data-en="Archive of Names: People who left behind a professional reputation, students and memory." data-ru="Архив имён: люди, которые оставили после себя профессиональную репутацию, учеников и память.">Archive of Names: People who left behind a professional reputation, students and memory.</h2>
       </div>
 
       <div class="intro-grid">
         <article class="paper-card lead-card">
-          <p>
-            На Лене такие имена продолжают жить буквально — они идут по реке на бортах действующих
-            или известных судов. Это не просто рабочая биография: за каждым именем стоит штурман,
-            механик, капитан, наставник, руководитель, участник войны, педагог.
-          </p>
+          <p data-en="On the Lena these names live on literally — they sail the river on the hulls of working or well-known vessels. This is more than a working biography: behind each name stands a navigator, a mechanic, a captain, a mentor, a leader, a war veteran, a teacher." data-ru="На Лене такие имена продолжают жить буквально — они идут по реке на бортах действующих или известных судов. Это не просто рабочая биография: за каждым именем стоит штурман, механик, капитан, наставник, руководитель, участник войны, педагог.">On the Lena these names live on literally — they sail the river on the hulls of working or well-known vessels. This is more than a working biography: behind each name stands a navigator, a mechanic, a captain, a mentor, a leader, a war veteran, a teacher.</p>
         </article>
 
         <article class="paper-card">
-          <h3>Что удалось собрать</h3>
-          <p>
-            По официальному юбилейному разделу Киренского колледжа подтверждаются документы
-            по пяти фигурам: Веключу, Верхотурову, Инёшину, Дмитриеву и Шелковникову.
-            Также публикации «Восточно-Сибирской правды» дают материал о Тетерине и Вольском.
-          </p>
+          <h3 data-en="What we found" data-ru="Что удалось собрать">What we found</h3>
+          <p data-en="The official jubilee section of Kirensk College confirms documents for five figures: Veklyuch, Verkhoturov, Ineshin, Dmitriev and Shelkovnikov. Publications in Vostochno-Sibirskaya Pravda also provide material on Teterin and Volsky." data-ru="По официальному юбилейному разделу Киренского колледжа подтверждаются документы по пяти фигурам: Веключу, Верхотурову, Инёшину, Дмитриеву и Шелковникову. Также публикации «Восточно-Сибирской правды» дают материал о Тетерине и Вольском.">The official jubilee section of Kirensk College confirms documents for five figures: Veklyuch, Verkhoturov, Ineshin, Dmitriev and Shelkovnikov. Publications in Vostochno-Sibirskaya Pravda also provide material on Teterin and Volsky.</p>
         </article>
       </div>
     </section>
 
     <section class="section river-band">
       <div class="river-band-inner">
-        <p class="section-mark">Река как память</p>
-        <h2>На Лене название судна часто звучит как короткая форма биографии.</h2>
-        <p>
-          За каждым именем на борту стоит конкретный человек. В этой теме важен именно человеческий масштаб, поэтому
-          тексты на сайте намеренно сделаны спокойными и фактическими.
-        </p>
+        <p class="section-mark" data-en="The river as memory" data-ru="Река как память">The river as memory</p>
+        <h2 data-en="On the Lena a ship's name often reads like a condensed biography." data-ru="На Лене название судна часто звучит как короткая форма биографии.">On the Lena a ship's name often reads like a condensed biography.</h2>
+        <p data-en="Behind every name on a hull stands a real person. The human scale matters here, which is why the texts on this site are deliberately calm and factual." data-ru="За каждым именем на борту стоит конкретный человек. В этой теме важен именно человеческий масштаб, поэтому тексты на сайте намеренно сделаны спокойными и фактическими.">Behind every name on a hull stands a real person. The human scale matters here, which is why the texts on this site are deliberately calm and factual.</p>
       </div>
     </section>
 
     <section class="section archive-section" id="archive">
       <div class="section-heading">
-        <p class="section-mark">Архив имён</p>
-        <h2>Биографии, подтверждённые архивными документами и открытыми источниками.</h2>
+        <p class="section-mark" data-en="Name archive" data-ru="Архив имён">Name archive</p>
+        <h2 data-en="Biographies confirmed by archival documents and open sources." data-ru="Биографии, подтверждённые архивными документами и открытыми источниками.">Biographies confirmed by archival documents and open sources.</h2>
       </div>
 
       <div class="archive-grid" id="archiveGrid">
@@ -115,34 +166,20 @@
           <div class="archive-head">
             <div class="archive-head-text">
               <span class="archive-year">1919</span>
-              <h3>Николай Сергеевич Веключ</h3>
+              <h3 data-en="Nikolai Sergeyevich Veklyuch" data-ru="Николай Сергеевич Веключ">Nikolai Sergeyevich Veklyuch</h3>
             </div>
             <div class="archive-head-photo">
-              <img src="assets/portraits/veklyuch.jpg" alt="Николай Сергеевич Веключ" onerror="this.parentElement.classList.add('no-photo')">
-              <span class="photo-placeholder-label">Н. С. Веключ</span>
+              <img src="assets/portraits/veklyuch.jpg" alt="Nikolai Sergeyevich Veklyuch" onerror="this.parentElement.classList.add('no-photo')">
+              <span class="photo-placeholder-label">N. S. Veklyuch</span>
             </div>
           </div>
-          <p>
-            Родился в Киренске 3 декабря 1919 года. Учился в Киренском ФЗУ в группе судомехаников,
-            прошёл практику на пароходе «Вторая пятилетка», а затем десятилетиями участвовал в ремонте
-            и строительстве флота Ленского пароходства.
-          </p>
-          <p>
-            Уже в навигацию 1936 года он проходил практику у известного механика И. А. Пичкулёва,
-            а в 1938 году после дипломирования получил диплом первого помощника механика и был
-            направлен на пароход «Бодайбинец». Его путь складывался не только как путь специалиста,
-            но и как путь организатора: в 1939 году он стал старшим мастером механического цеха.
-          </p>
-          <p>
-            После войны и демобилизации Веключ вернулся на Красноармейский судоремонтный завод.
-            Когда с 1950 года началось интенсивное пополнение флота Ленского пароходства, он на
-            протяжении примерно тридцати лет участвовал в строительстве судов разных проектов,
-            руководя коллективами, которые стабильно выполняли плановые задания.
-          </p>
+          <p data-en="Born in Kirensk on 3 December 1919. He studied at the Kirensk Vocational School in the ship-mechanics group, completed a placement on the steamship Vtoraya Pyatiletka, and then spent decades taking part in the repair and construction of the Lena Shipping Company's fleet." data-ru="Родился в Киренске 3 декабря 1919 года. Учился в Киренском ФЗУ в группе судомехаников, прошёл практику на пароходе «Вторая пятилетка», а затем десятилетиями участвовал в ремонте и строительстве флота Ленского пароходства.">Born in Kirensk on 3 December 1919. He studied at the Kirensk Vocational School in the ship-mechanics group, completed a placement on the steamship Vtoraya Pyatiletka, and then spent decades taking part in the repair and construction of the Lena Shipping Company's fleet.</p>
+          <p data-en="As early as the 1936 navigation season he trained under the renowned mechanic I. A. Pichkulyov, and in 1938 after graduating he received his first-assistant mechanic's diploma and was assigned to the steamship Bodaybinets. His career developed not only as a specialist but as an organiser: in 1939 he became senior foreman of the machine shop." data-ru="Уже в навигацию 1936 года он проходил практику у известного механика И. А. Пичкулёва, а в 1938 году после дипломирования получил диплом первого помощника механика и был направлен на пароход «Бодайбинец». Его путь складывался не только как путь специалиста, но и как путь организатора: в 1939 году он стал старшим мастером механического цеха.">As early as the 1936 navigation season he trained under the renowned mechanic I. A. Pichkulyov, and in 1938 after graduating he received his first-assistant mechanic's diploma and was assigned to the steamship Bodaybinets. His career developed not only as a specialist but as an organiser: in 1939 he became senior foreman of the machine shop.</p>
+          <p data-en="After the war and demobilisation Veklyuch returned to the Krasnoarmeysky Ship-Repair Plant. When from 1950 onward the Lena Shipping Company began intensive fleet expansion, he spent approximately thirty years participating in the construction of vessels of various types, leading teams that consistently met their production targets." data-ru="После войны и демобилизации Веключ вернулся на Красноармейский судоремонтный завод. Когда с 1950 года началось интенсивное пополнение флота Ленского пароходства, он на протяжении примерно тридцати лет участвовал в строительстве судов разных проектов, руководя коллективами, которые стабильно выполняли плановые задания.">After the war and demobilisation Veklyuch returned to the Krasnoarmeysky Ship-Repair Plant. When from 1950 onward the Lena Shipping Company began intensive fleet expansion, he spent approximately thirty years participating in the construction of vessels of various types, leading teams that consistently met their production targets.</p>
           <ul class="fact-list">
-            <li>Участвовал в освобождении Южного Сахалина в 1945 году</li>
-            <li>Около 30 лет работал мастером и начальником механического цеха</li>
-            <li>Был награждён орденами Трудового Красного Знамени и Октябрьской революции</li>
+            <li data-en="Took part in the liberation of Southern Sakhalin in 1945" data-ru="Участвовал в освобождении Южного Сахалина в 1945 году">Took part in the liberation of Southern Sakhalin in 1945</li>
+            <li data-en="For about 30 years worked as foreman and head of the machine shop" data-ru="Около 30 лет работал мастером и начальником механического цеха">For about 30 years worked as foreman and head of the machine shop</li>
+            <li data-en="Awarded the Orders of the Red Banner of Labour and the October Revolution" data-ru="Был награждён орденами Трудового Красного Знамени и Октябрьской революции">Awarded the Orders of the Red Banner of Labour and the October Revolution</li>
           </ul>
         </article>
 
@@ -150,32 +187,20 @@
           <div class="archive-head">
             <div class="archive-head-text">
               <span class="archive-year">1946</span>
-              <h3>Владимир Викторович Верхотуров</h3>
+              <h3 data-en="Vladimir Viktorovich Verkhoturov" data-ru="Владимир Викторович Верхотуров">Vladimir Viktorovich Verkhoturov</h3>
             </div>
             <div class="archive-head-photo">
-              <img src="assets/portraits/verkhoturov.jpg" alt="Владимир Викторович Верхотуров" onerror="this.parentElement.classList.add('no-photo')">
-              <span class="photo-placeholder-label">В. В. Верхотуров</span>
+              <img src="assets/portraits/verkhoturov.jpg" alt="Vladimir Viktorovich Verkhoturov" onerror="this.parentElement.classList.add('no-photo')">
+              <span class="photo-placeholder-label">V. V. Verkhoturov</span>
             </div>
           </div>
-          <p>
-            После СПТУ №3 пришёл на пароход «Хабаровск», совмещал работу с заочной учёбой и в 1977 году
-            возглавил экипаж. Капитан, для которого важны не только план и безопасность, но и школа наставничества.
-          </p>
-          <p>
-            В биографии Верхотурова особенно подчёркивается его роль наставника. На судне регулярно
-            проходили практику студенты Николаевского кораблестроительного института, и большая часть
-            работы по включению новичков в экипаж ложилась на капитана. Для него безаварийная навигация
-            была связана не только с профессиональным знанием Лены, но и с умением собрать сильный коллектив.
-          </p>
-          <p>
-            Экипаж «Хабаровска» участвовал в конкурсах по культуре обслуживания, безопасности плавания
-            и спортивных соревнованиях. За этим стоял стиль руководства капитана, который
-            сочетал требовательность и уважение к людям.
-          </p>
+          <p data-en="After vocational school No. 3 he joined the steamship Khabarovsk, combined work with correspondence studies and in 1977 took command of the crew. A captain for whom not only the plan and safety mattered, but also the school of mentorship." data-ru="После СПТУ №3 пришёл на пароход «Хабаровск», совмещал работу с заочной учёбой и в 1977 году возглавил экипаж. Капитан, для которого важны не только план и безопасность, но и школа наставничества.">After vocational school No. 3 he joined the steamship Khabarovsk, combined work with correspondence studies and in 1977 took command of the crew. A captain for whom not only the plan and safety mattered, but also the school of mentorship.</p>
+          <p data-en="Verkhoturov's biography particularly highlights his role as a mentor. Students from the Nikolayev Shipbuilding Institute regularly did placements on the vessel, and much of the work of integrating newcomers into the crew fell to the captain. For him an accident-free navigation season was bound up not only with professional knowledge of the Lena, but also with the ability to build a strong team." data-ru="В биографии Верхотурова особенно подчёркивается его роль наставника. На судне регулярно проходили практику студенты Николаевского кораблестроительного института, и большая часть работы по включению новичков в экипаж ложилась на капитана. Для него безаварийная навигация была связана не только с профессиональным знанием Лены, но и с умением собрать сильный коллектив.">Verkhoturov's biography particularly highlights his role as a mentor. Students from the Nikolayev Shipbuilding Institute regularly did placements on the vessel, and much of the work of integrating newcomers into the crew fell to the captain. For him an accident-free navigation season was bound up not only with professional knowledge of the Lena, but also with the ability to build a strong team.</p>
+          <p data-en="The Khabarovsk's crew took part in competitions in service culture, navigation safety and sports events. Behind this stood the captain's management style, which combined exacting standards with respect for people." data-ru="Экипаж «Хабаровска» участвовал в конкурсах по культуре обслуживания, безопасности плавания и спортивных соревнованиях. За этим стоял стиль руководства капитана, который сочетал требовательность и уважение к людям.">The Khabarovsk's crew took part in competitions in service culture, navigation safety and sports events. Behind this stood the captain's management style, which combined exacting standards with respect for people.</p>
           <ul class="fact-list">
-            <li>Экипаж выполнял навигационный план на 115–120%</li>
-            <li>На судне проходили практику студенты</li>
-            <li>В 1995 году получил звание «Заслуженный работник транспорта РФ»</li>
+            <li data-en="Crew fulfilled the navigation plan at 115–120%" data-ru="Экипаж выполнял навигационный план на 115–120%">Crew fulfilled the navigation plan at 115–120%</li>
+            <li data-en="Students completed placements on board" data-ru="На судне проходили практику студенты">Students completed placements on board</li>
+            <li data-en="In 1995 awarded the title Honoured Transport Worker of the Russian Federation" data-ru="В 1995 году получил звание «Заслуженный работник транспорта РФ»">In 1995 awarded the title Honoured Transport Worker of the Russian Federation</li>
           </ul>
         </article>
 
@@ -183,31 +208,20 @@
           <div class="archive-head">
             <div class="archive-head-text">
               <span class="archive-year">1938</span>
-              <h3>Алексей Александрович Инёшин</h3>
+              <h3 data-en="Alexei Alexandrovich Ineshin" data-ru="Алексей Александрович Инёшин">Alexei Alexandrovich Ineshin</h3>
             </div>
             <div class="archive-head-photo">
-              <img src="assets/portraits/ineshin.jpg" alt="Алексей Александрович Инёшин" onerror="this.parentElement.classList.add('no-photo')">
-              <span class="photo-placeholder-label">А. А. Инёшин</span>
+              <img src="assets/portraits/ineshin.jpg" alt="Alexei Alexandrovich Ineshin" onerror="this.parentElement.classList.add('no-photo')">
+              <span class="photo-placeholder-label">A. A. Ineshin</span>
             </div>
           </div>
-          <p>
-            Родился 10 ноября 1938 года в селе Непа Катангского района. После ремесленного училища №3
-            начал работать штурвальным, в 1961 году стал вторым штурманом на пароходе «Полина Осипенко»,
-            а в 1968 году был назначен капитаном на пароход «Кубань».
-          </p>
-          <p>
-            С 1983 года Инёшин работал капитаном на теплоходе «Неман». Он и его экипаж вписали
-            в летопись Киренской РЭБ флота яркие страницы, в том числе
-            по завозу генеральных грузов по реке Киренга для строительства Байкало-Амурской магистрали.
-          </p>
-          <p>
-            За годы работы он был известен как дисциплинированный и знающий своё дело капитан. Его
-            неоднократно поощряли, заносили на районную доску почёта и в Книгу почёта.
-          </p>
+          <p data-en="Born 10 November 1938 in the village of Nepa in the Katanga District. After vocational school No. 3 he began work as a helmsman, in 1961 became second navigator on the steamship Polina Osipenko, and in 1968 was appointed captain of the steamship Kuban." data-ru="Родился 10 ноября 1938 года в селе Непа Катангского района. После ремесленного училища №3 начал работать штурвальным, в 1961 году стал вторым штурманом на пароходе «Полина Осипенко», а в 1968 году был назначен капитаном на пароход «Кубань».">Born 10 November 1938 in the village of Nepa in the Katanga District. After vocational school No. 3 he began work as a helmsman, in 1961 became second navigator on the steamship Polina Osipenko, and in 1968 was appointed captain of the steamship Kuban.</p>
+          <p data-en="From 1983 Ineshin served as captain on the motor vessel Neman. He and his crew wrote bright pages in the annals of the Kirensk River Equipment Base, including the delivery of general cargo along the Kirenga River for construction of the Baikal-Amur Mainline railway." data-ru="С 1983 года Инёшин работал капитаном на теплоходе «Неман». Он и его экипаж вписали в летопись Киренской РЭБ флота яркие страницы, в том числе по завозу генеральных грузов по реке Киренга для строительства Байкало-Амурской магистрали.">From 1983 Ineshin served as captain on the motor vessel Neman. He and his crew wrote bright pages in the annals of the Kirensk River Equipment Base, including the delivery of general cargo along the Kirenga River for construction of the Baikal-Amur Mainline railway.</p>
+          <p data-en="Throughout his career he was known as a disciplined captain who knew his trade. He was repeatedly commended and entered on the district roll of honour and Book of Honour." data-ru="За годы работы он был известен как дисциплинированный и знающий своё дело капитан. Его неоднократно поощряли, заносили на районную доску почёта и в Книгу почёта.">Throughout his career he was known as a disciplined captain who knew his trade. He was repeatedly commended and entered on the district roll of honour and Book of Honour.</p>
           <ul class="fact-list">
-            <li>С 1983 года работал капитаном на теплоходе «Неман»</li>
-            <li>Заносился на районную доску почёта и в Книгу почёта</li>
-            <li>Кавалер ордена Трудового Красного Знамени</li>
+            <li data-en="From 1983 served as captain on the motor vessel Neman" data-ru="С 1983 года работал капитаном на теплоходе «Неман»">From 1983 served as captain on the motor vessel Neman</li>
+            <li data-en="Entered on the district roll of honour and Book of Honour" data-ru="Заносился на районную доску почёта и в Книгу почёта">Entered on the district roll of honour and Book of Honour</li>
+            <li data-en="Holder of the Order of the Red Banner of Labour" data-ru="Кавалер ордена Трудового Красного Знамени">Holder of the Order of the Red Banner of Labour</li>
           </ul>
         </article>
 
@@ -215,30 +229,20 @@
           <div class="archive-head">
             <div class="archive-head-text">
               <span class="archive-year">1937</span>
-              <h3>Владимир Васильевич Дмитриев</h3>
+              <h3 data-en="Vladimir Vasilyevich Dmitriev" data-ru="Владимир Васильевич Дмитриев">Vladimir Vasilyevich Dmitriev</h3>
             </div>
             <div class="archive-head-photo">
-              <img src="assets/portraits/dmitriev.jpg" alt="Владимир Васильевич Дмитриев" onerror="this.parentElement.classList.add('no-photo')">
-              <span class="photo-placeholder-label">В. В. Дмитриев</span>
+              <img src="assets/portraits/dmitriev.jpg" alt="Vladimir Vasilyevich Dmitriev" onerror="this.parentElement.classList.add('no-photo')">
+              <span class="photo-placeholder-label">V. V. Dmitriev</span>
             </div>
           </div>
-          <p>
-            Родился 24 апреля 1937 года. Начинал штурвальным на пароходе «С. М. Киров», в 1964 году
-            стал капитаном сухогрузного теплохода СП-654, позже работал на танкере ТО-1507 и буксире
-            «Селенга». Его биография тесно связана с Верхней Леной и сложной проводкой составов.
-          </p>
-          <p>
-            В материалах о Дмитриеве особенно выразительно описываются первые рейсы через Ленские щёки —
-            сложный участок реки, где ошибка судоводителя могла стоить судну жизни.
-          </p>
-          <p>
-            После многих лет на капитанском мостике он не ушёл из профессии сразу: с 1989 года продолжал
-            работать помощником на танкере ТО-1525 и передавал молодым речникам свой опыт.
-          </p>
+          <p data-en="Born 24 April 1937. He began as a helmsman on the steamship S. M. Kirov, in 1964 became captain of the dry-cargo motor vessel SP-654, and later worked on the tanker TO-1507 and the tugboat Selenga. His biography is closely bound up with the Upper Lena and the difficult navigation of convoys." data-ru="Родился 24 апреля 1937 года. Начинал штурвальным на пароходе «С. М. Киров», в 1964 году стал капитаном сухогрузного теплохода СП-654, позже работал на танкере ТО-1507 и буксире «Селенга». Его биография тесно связана с Верхней Леной и сложной проводкой составов.">Born 24 April 1937. He began as a helmsman on the steamship S. M. Kirov, in 1964 became captain of the dry-cargo motor vessel SP-654, and later worked on the tanker TO-1507 and the tugboat Selenga. His biography is closely bound up with the Upper Lena and the difficult navigation of convoys.</p>
+          <p data-en="The records about Dmitriev describe with particular vividness his first voyages through the Lenskie Shchyoki — a challenging stretch of river where a navigator's error could prove fatal to the vessel." data-ru="В материалах о Дмитриеве особенно выразительно описываются первые рейсы через Ленские щёки — сложный участок реки, где ошибка судоводителя могла стоить судну жизни.">The records about Dmitriev describe with particular vividness his first voyages through the Lenskie Shchyoki — a challenging stretch of river where a navigator's error could prove fatal to the vessel.</p>
+          <p data-en="After many years on the bridge he did not leave the profession at once: from 1989 he continued working as a mate on the tanker TO-1525, passing his experience on to young river workers." data-ru="После многих лет на капитанском мостике он не ушёл из профессии сразу: с 1989 года продолжал работать помощником на танкере ТО-1525 и передавал молодым речникам свой опыт.">After many years on the bridge he did not leave the profession at once: from 1989 he continued working as a mate on the tanker TO-1525, passing his experience on to young river workers.</p>
           <ul class="fact-list">
-            <li>24 года отработал капитаном</li>
-            <li>Общий стаж на флоте составил 43 года</li>
-            <li>Награждён орденом Трудового Красного Знамени и знаком «Отличник речного флота»</li>
+            <li data-en="Served 24 years as captain" data-ru="24 года отработал капитаном">Served 24 years as captain</li>
+            <li data-en="Total fleet service of 43 years" data-ru="Общий стаж на флоте составил 43 года">Total fleet service of 43 years</li>
+            <li data-en="Awarded the Order of the Red Banner of Labour and the badge Excellent River Fleet Worker" data-ru="Награждён орденом Трудового Красного Знамени и знаком «Отличник речного флота»">Awarded the Order of the Red Banner of Labour and the badge Excellent River Fleet Worker</li>
           </ul>
         </article>
 
@@ -246,32 +250,20 @@
           <div class="archive-head">
             <div class="archive-head-text">
               <span class="archive-year">1931</span>
-              <h3>Владимир Иванович Шелковников</h3>
+              <h3 data-en="Vladimir Ivanovich Shelkovnikov" data-ru="Владимир Иванович Шелковников">Vladimir Ivanovich Shelkovnikov</h3>
             </div>
             <div class="archive-head-photo">
-              <img src="assets/portraits/shelkovnikov.jpg" alt="Владимир Иванович Шелковников" onerror="this.parentElement.classList.add('no-photo')">
-              <span class="photo-placeholder-label">В. И. Шелковников</span>
+              <img src="assets/portraits/shelkovnikov.jpg" alt="Vladimir Ivanovich Shelkovnikov" onerror="this.parentElement.classList.add('no-photo')">
+              <span class="photo-placeholder-label">V. I. Shelkovnikov</span>
             </div>
           </div>
-          <p>
-            Начал путь в системе профтехобразования в 1931 году, а затем на долгие годы стал ключевой
-            фигурой Киренского училища. Под его руководством учебное заведение стало кузницей
-            кадров для Ленского речного пароходства.
-          </p>
-          <p>
-            Его собственная биография начинается с обучения столярному делу в Киренской школе ФЗУ.
-            Затем были работа на Красноармейском заводе, возвращение в училище уже как инструктора
-            производственного обучения, должность заведующего учебно-производственной частью, а потом
-            многолетнее руководство учебным заведением.
-          </p>
-          <p>
-            Для многих выпускников Шелковников оставался не просто директором, а человеком, который
-            дал путёвку в профессию. Выпускники называли его «Наш Учитель».
-          </p>
+          <p data-en="He began his path in the vocational education system in 1931 and then for many years became the central figure of the Kirensk college. Under his leadership the institution became a training ground for the Lena River Shipping Company." data-ru="Начал путь в системе профтехобразования в 1931 году, а затем на долгие годы стал ключевой фигурой Киренского училища. Под его руководством учебное заведение стало кузницей кадров для Ленского речного пароходства.">He began his path in the vocational education system in 1931 and then for many years became the central figure of the Kirensk college. Under his leadership the institution became a training ground for the Lena River Shipping Company.</p>
+          <p data-en="His own biography begins with learning carpentry at the Kirensk Vocational School. This was followed by work at the Krasnoarmeysky plant, a return to the college as an instructor of practical training, the post of head of the academic-production department, and then years of leading the institution." data-ru="Его собственная биография начинается с обучения столярному делу в Киренской школе ФЗУ. Затем были работа на Красноармейском заводе, возвращение в училище уже как инструктора производственного обучения, должность заведующего учебно-производственной частью, а потом многолетнее руководство учебным заведением.">His own biography begins with learning carpentry at the Kirensk Vocational School. This was followed by work at the Krasnoarmeysky plant, a return to the college as an instructor of practical training, the post of head of the academic-production department, and then years of leading the institution.</p>
+          <p data-en="For many graduates Shelkovnikov remained not merely a director but the man who gave them their start in the profession. Graduates called him 'Our Teacher'." data-ru="Для многих выпускников Шелковников оставался не просто директором, а человеком, который дал путёвку в профессию. Выпускники называли его «Наш Учитель».">For many graduates Shelkovnikov remained not merely a director but the man who gave them their start in the profession. Graduates called him 'Our Teacher'.</p>
           <ul class="fact-list">
-            <li>С 1948 года руководил училищем</li>
-            <li>Для многих выпускников остался «Нашим Учителем»</li>
-            <li>Его имя продолжило жить в составе судоходной компании «Якутск»</li>
+            <li data-en="Led the college from 1948" data-ru="С 1948 года руководил училищем">Led the college from 1948</li>
+            <li data-en="Remembered by many graduates as 'Our Teacher'" data-ru="Для многих выпускников остался «Нашим Учителем»">Remembered by many graduates as 'Our Teacher'</li>
+            <li data-en="His name lives on within the Yakutsk shipping company" data-ru="Его имя продолжило жить в составе судоходной компании «Якутск»">His name lives on within the Yakutsk shipping company</li>
           </ul>
         </article>
 
@@ -279,27 +271,19 @@
           <div class="archive-head">
             <div class="archive-head-text">
               <span class="archive-year">2000</span>
-              <h3>Сергей Игнатьевич Тетерин</h3>
+              <h3 data-en="Sergei Ignatyevich Teterin" data-ru="Сергей Игнатьевич Тетерин">Sergei Ignatyevich Teterin</h3>
             </div>
-            <div class="archive-head-photo">
-              <img src="assets/portraits/teterin.jpg" alt="Сергей Игнатьевич Тетерин" onerror="this.parentElement.classList.add('no-photo')">
-              <span class="photo-placeholder-label">С. И. Тетерин</span>
+            <div class="archive-head-photo no-photo">
+              <img src="" alt="Sergei Ignatyevich Teterin" style="display:none">
+              <span class="photo-placeholder-label">S. I. Teterin</span>
             </div>
           </div>
-          <p>
-            В открытой публикации «Путь к награде» в газете «Восточно-Сибирская правда» Сергей Игнатьевич
-            Тетерин назван капитаном парохода «Красноярск» Киренской РЭБ флота. На момент публикации
-            в августе 2000 года он уже двадцать вторую навигацию подряд возглавлял экипаж пассажирского судна.
-          </p>
-          <p>
-            Тетерин прошёл путь служебного роста постепенно. Ему также приписываются рационализаторские
-            предложения и большая работа по модернизации и эстетическому оформлению судна — редкое
-            сочетание капитанского опыта, технической смекалки и внимательности к облику корабля.
-          </p>
+          <p data-en="In the open publication 'The Road to an Award' in the newspaper Vostochno-Sibirskaya Pravda, Sergei Ignatyevich Teterin is named as captain of the steamship Krasnoyarsk of the Kirensk River Equipment Base. At the time of publication in August 2000 he had already led the crew of the passenger vessel for twenty-two consecutive navigation seasons." data-ru="В открытой публикации «Путь к награде» в газете «Восточно-Сибирская правда» Сергей Игнатьевич Тетерин назван капитаном парохода «Красноярск» Киренской РЭБ флота. На момент публикации в августе 2000 года он уже двадцать вторую навигацию подряд возглавлял экипаж пассажирского судна.">In the open publication 'The Road to an Award' in the newspaper Vostochno-Sibirskaya Pravda, Sergei Ignatyevich Teterin is named as captain of the steamship Krasnoyarsk of the Kirensk River Equipment Base. At the time of publication in August 2000 he had already led the crew of the passenger vessel for twenty-two consecutive navigation seasons.</p>
+          <p data-en="Teterin rose through the ranks gradually. He is also credited with rationalisation proposals and considerable work on the modernisation and aesthetic improvement of the vessel — a rare combination of captain's experience, technical ingenuity and attention to the ship's appearance." data-ru="Тетерин прошёл путь служебного роста постепенно. Ему также приписываются рационализаторские предложения и большая работа по модернизации и эстетическому оформлению судна — редкое сочетание капитанского опыта, технической смекалки и внимательности к облику корабля.">Teterin rose through the ranks gradually. He is also credited with rationalisation proposals and considerable work on the modernisation and aesthetic improvement of the vessel — a rare combination of captain's experience, technical ingenuity and attention to the ship's appearance.</p>
           <ul class="fact-list">
-            <li>Капитан парохода «Красноярск» Киренской РЭБ флота</li>
-            <li>В 2000 году награждён орденом Дружбы</li>
-            <li>Имел звание «Специалист высшего класса»</li>
+            <li data-en="Captain of the steamship Krasnoyarsk, Kirensk River Equipment Base" data-ru="Капитан парохода «Красноярск» Киренской РЭБ флота">Captain of the steamship Krasnoyarsk, Kirensk River Equipment Base</li>
+            <li data-en="Awarded the Order of Friendship in 2000" data-ru="В 2000 году награждён орденом Дружбы">Awarded the Order of Friendship in 2000</li>
+            <li data-en="Held the title of Highest-Class Specialist" data-ru="Имел звание «Специалист высшего класса»">Held the title of Highest-Class Specialist</li>
           </ul>
         </article>
 
@@ -307,28 +291,19 @@
           <div class="archive-head">
             <div class="archive-head-text">
               <span class="archive-year">2002</span>
-              <h3>В. Р. Вольский</h3>
+              <h3 data-en="V. R. Volsky" data-ru="В. Р. Вольский">V. R. Volsky</h3>
             </div>
-            <div class="archive-head-photo">
-              <img src="assets/portraits/volsky.jpg" alt="В. Р. Вольский" onerror="this.parentElement.classList.add('no-photo')">
-              <span class="photo-placeholder-label">В. Р. Вольский</span>
+            <div class="archive-head-photo no-photo">
+              <img src="" alt="V. R. Volsky" style="display:none">
+              <span class="photo-placeholder-label">V. R. Volsky</span>
             </div>
           </div>
-          <p>
-            В публикации «Эта чёрная зависть…» на сайте «ВСП.RU» В. Р. Вольский упомянут
-            как капитан теплохода «Капитан Верхотуров» и почётный работник транспорта России.
-            Даже короткое газетное упоминание ценно тем, что связывает конкретное судно с живым
-            продолжением традиции речников Киренской РЭБ флота.
-          </p>
-          <p>
-            Биография пока представлена не так подробно, как документы по Веключу или Дмитриеву,
-            но уже сейчас она показывает, что круг именованных судов и людей,
-            продолжавших речную школу Киренска, был значительно шире.
-          </p>
+          <p data-en="In the publication 'This Black Envy…' on the VSP.RU website, V. R. Volsky is mentioned as captain of the motor vessel Kapitan Verkhoturov and an Honoured Transport Worker of Russia. Even a brief newspaper mention is valuable in that it connects a specific vessel to the living continuation of the Kirensk River Equipment Base tradition." data-ru="В публикации «Эта чёрная зависть…» на сайте «ВСП.RU» В. Р. Вольский упомянут как капитан теплохода «Капитан Верхотуров» и почётный работник транспорта России. Даже короткое газетное упоминание ценно тем, что связывает конкретное судно с живым продолжением традиции речников Киренской РЭБ флота.">In the publication 'This Black Envy…' on the VSP.RU website, V. R. Volsky is mentioned as captain of the motor vessel Kapitan Verkhoturov and an Honoured Transport Worker of Russia. Even a brief newspaper mention is valuable in that it connects a specific vessel to the living continuation of the Kirensk River Equipment Base tradition.</p>
+          <p data-en="His biography is not yet as detailed as the documents for Veklyuch or Dmitriev, but it already shows that the circle of named vessels and people who continued the river school of Kirensk was considerably wider." data-ru="Биография пока представлена не так подробно, как документы по Веключу или Дмитриеву, но уже сейчас она показывает, что круг именованных судов и людей, продолжавших речную школу Киренска, был значительно шире.">His biography is not yet as detailed as the documents for Veklyuch or Dmitriev, but it already shows that the circle of named vessels and people who continued the river school of Kirensk was considerably wider.</p>
           <ul class="fact-list">
-            <li>Капитан теплохода «Капитан Верхотуров»</li>
-            <li>Упомянут среди акционеров Киренской РЭБ флота</li>
-            <li>Почётный работник транспорта России</li>
+            <li data-en="Captain of the motor vessel Kapitan Verkhoturov" data-ru="Капитан теплохода «Капитан Верхотуров»">Captain of the motor vessel Kapitan Verkhoturov</li>
+            <li data-en="Mentioned among shareholders of the Kirensk River Equipment Base" data-ru="Упомянут среди акционеров Киренской РЭБ флота">Mentioned among shareholders of the Kirensk River Equipment Base</li>
+            <li data-en="Honoured Transport Worker of Russia" data-ru="Почётный работник транспорта России">Honoured Transport Worker of Russia</li>
           </ul>
         </article>
       </div>
@@ -337,111 +312,88 @@
     <section class="section route-section">
       <div class="route-layout">
         <article class="route-card">
-          <p class="section-mark">История места</p>
-          <h2>Тема начинается не с одного судна, а с целой школы речного дела.</h2>
-          <p>
-            В юбилейном разделе Киренского профессионально-педагогического колледжа сказано, что
-            в 1922 году на базе Красноармейского затона был создан учебный механический цех для
-            подготовки специалистов речного флота. Позже он прошёл путь от школы ФЗУ до ремесленного
-            училища, ПТУ, а затем стал частью современной образовательной истории Киренска.
-          </p>
+          <p class="section-mark" data-en="History of the place" data-ru="История места">History of the place</p>
+          <h2 data-en="The story begins not with a single ship but with an entire school of river craft." data-ru="Тема начинается не с одного судна, а с целой школы речного дела.">The story begins not with a single ship but with an entire school of river craft.</h2>
+          <p data-en="The jubilee section of the Kirensk Vocational-Pedagogical College states that in 1922 an educational machine shop was established at the Krasnoarmeysky backwater for training river fleet specialists. It subsequently evolved from a vocational school to a trade school, then to a vocational-technical school, and eventually became part of the modern educational history of Kirensk." data-ru="В юбилейном разделе Киренского профессионально-педагогического колледжа сказано, что в 1922 году на базе Красноармейского затона был создан учебный механический цех для подготовки специалистов речного флота. Позже он прошёл путь от школы ФЗУ до ремесленного училища, ПТУ, а затем стал частью современной образовательной истории Киренска.">The jubilee section of the Kirensk Vocational-Pedagogical College states that in 1922 an educational machine shop was established at the Krasnoarmeysky backwater for training river fleet specialists. It subsequently evolved from a vocational school to a trade school, then to a vocational-technical school, and eventually became part of the modern educational history of Kirensk.</p>
         </article>
 
         <article class="route-card route-card-muted">
-          <p class="section-mark">Память о флоте</p>
-          <h2>В Киренске эту историю сохраняют не только документы.</h2>
-          <p>
-            На городском портале Киренска в материале о библиотеке-музее микрорайона Мельничный
-            говорится, что музей речников был открыт в День речника 4 июля 1977 года. В его основе
-            лежат фотографии, воспоминания ветеранов, история Киренской РЭБ флота и материалы о
-            капитанах, механиках и судостроителях Лены.
-          </p>
+          <p class="section-mark" data-en="Memory of the fleet" data-ru="Память о флоте">Memory of the fleet</p>
+          <h2 data-en="In Kirensk this history is preserved not only in documents." data-ru="В Киренске эту историю сохраняют не только документы.">In Kirensk this history is preserved not only in documents.</h2>
+          <p data-en="The city portal of Kirensk, in its article about the library-museum of the Melnichniy district, states that the river workers' museum was opened on River Workers' Day, 4 July 1977. It is built around photographs, veterans' recollections, the history of the Kirensk River Equipment Base and materials about the captains, mechanics and shipbuilders of the Lena." data-ru="На городском портале Киренска в материале о библиотеке-музее микрорайона Мельничный говорится, что музей речников был открыт в День речника 4 июля 1977 года. В его основе лежат фотографии, воспоминания ветеранов, история Киренской РЭБ флота и материалы о капитанах, механиках и судостроителях Лены.">The city portal of Kirensk, in its article about the library-museum of the Melnichniy district, states that the river workers' museum was opened on River Workers' Day, 4 July 1977. It is built around photographs, veterans' recollections, the history of the Kirensk River Equipment Base and materials about the captains, mechanics and shipbuilders of the Lena.</p>
         </article>
       </div>
     </section>
 
     <section class="section intro">
       <div class="section-heading">
-        <p class="section-mark">Открытые источники</p>
-        <h2>В опубликованных материалах встречаются и другие имена, связанные с речной историей Киренска.</h2>
+        <p class="section-mark" data-en="Open sources" data-ru="Открытые источники">Open sources</p>
+        <h2 data-en="Published materials mention other names connected with the river history of Kirensk." data-ru="В опубликованных материалах встречаются и другие имена, связанные с речной историей Киренска.">Published materials mention other names connected with the river history of Kirensk.</h2>
       </div>
 
       <div class="intro-grid">
         <article class="paper-card lead-card">
-          <p>
-            В юбилейном разделе колледжа отдельно сказано, что в «Галерее звёзд» были собраны
-            фотографии ярких выпускников и наставников, среди которых названы В. П. Садохин,
-            С. И. Тетерин, А. А. Кузаков и В. Р. Вольский. Это важный знак того, что тема
-            гораздо шире семи биографий, которые удалось точно подтвердить документами.
-          </p>
+          <p data-en="The jubilee section of the college states separately that in the 'Gallery of Stars' photographs of outstanding graduates and mentors were collected, among them V. P. Sadokhin, S. I. Teterin, A. A. Kuzakov and V. R. Volsky. This is an important sign that the subject is far broader than the seven biographies that could be confirmed precisely by documents." data-ru="В юбилейном разделе колледжа отдельно сказано, что в «Галерее звёзд» были собраны фотографии ярких выпускников и наставников, среди которых названы В. П. Садохин, С. И. Тетерин, А. А. Кузаков и В. Р. Вольский. Это важный знак того, что тема гораздо шире семи биографий, которые удалось точно подтвердить документами.">The jubilee section of the college states separately that in the 'Gallery of Stars' photographs of outstanding graduates and mentors were collected, among them V. P. Sadokhin, S. I. Teterin, A. A. Kuzakov and V. R. Volsky. This is an important sign that the subject is far broader than the seven biographies that could be confirmed precisely by documents.</p>
         </article>
 
         <article class="paper-card">
-          <h3>Что подтверждается точно</h3>
-          <p>
-            Открытые документы колледжа дают отдельные тексты по Веключу, Верхотурову, Инёшину,
-            Дмитриеву и Шелковникову. Именно поэтому на сайте сделан упор на эти пять фигур,
-            без догадок и искусственных дополнений.
-          </p>
+          <h3 data-en="What is confirmed precisely" data-ru="Что подтверждается точно">What is confirmed precisely</h3>
+          <p data-en="The college's open documents provide individual texts on Veklyuch, Verkhoturov, Ineshin, Dmitriev and Shelkovnikov. That is why this site focuses on these five figures, without guesswork or artificial additions." data-ru="Открытые документы колледжа дают отдельные тексты по Веключу, Верхотурову, Инёшину, Дмитриеву и Шелковникову. Именно поэтому на сайте сделан упор на эти пять фигур, без догадок и искусственных дополнений.">The college's open documents provide individual texts on Veklyuch, Verkhoturov, Ineshin, Dmitriev and Shelkovnikov. That is why this site focuses on these five figures, without guesswork or artificial additions.</p>
         </article>
 
         <article class="paper-card">
-          <h3>Что даёт городской архив</h3>
-          <p>
-            Публикация о библиотеке-музее показывает, что в Киренске уже десятилетиями сохраняют
-            фотоальбомы, модели пароходов, воспоминания речников и материалы о развитии судоходства
-            на Лене. Тема жива не только в документах, но и в городской памяти.
-          </p>
+          <<h3 data-en="What the city archive provides" data-ru="Что даёт городской архив">What the city archive provides</h3>
+          <p data-en="The publication about the library-museum shows that Kirensk has for decades been preserving photo albums, steamship models, river workers' memoirs and materials on the development of shipping on the Lena. The subject lives not only in documents but in the city's memory." data-ru="Публикация о библиотеке-музее показывает, что в Киренске уже десятилетиями сохраняют фотоальбомы, модели пароходов, воспоминания речников и материалы о развитии судоходства на Лене. Тема жива не только в документах, но и в городской памяти.">The publication about the library-museum shows that Kirensk has for decades been preserving photo albums, steamship models, river workers' memoirs and materials on the development of shipping on the Lena. The subject lives not only in documents but in the city's memory.</p>
         </article>
       </div>
     </section>
 
     <section class="section gallery-section" id="gallery">
       <div class="section-heading">
-        <p class="section-mark">Фотографии</p>
-        <h2>Реальные суда на реке Лена</h2>
+        <p class="section-mark" data-en="Photographs" data-ru="Фотографии">Photographs</p>
+        <h2 data-en="Real ships on the Lena River" data-ru="Реальные суда на реке Лена">Real ships on the Lena River</h2>
       </div>
 
       <div class="gallery-layout">
         <figure class="photo-card photo-card-large">
           <img src="assets/ships/captain-dmitriev.jpg" alt="Судно Капитан Дмитриев на реке Лена">
-          <figcaption>«Капитан Дмитриев» на Лене</figcaption>
+          <figcaption data-en="Kapitan Dmitriev on the Lena" data-ru="«Капитан Дмитриев» на Лене">Kapitan Dmitriev on the Lena</figcaption>
         </figure>
 
         <figure class="photo-card">
           <img src="assets/ships/captain-verkhoturov.jpg" alt="Судно Капитан Верхотуров">
-          <figcaption>Судно «Капитан Верхотуров»</figcaption>
+          <figcaption data-en="The vessel Kapitan Verkhoturov" data-ru="Судно «Капитан Верхотуров»">The vessel Kapitan Verkhoturov</figcaption>
         </figure>
 
         <figure class="photo-card">
           <img src="assets/ships/vladimir-shelkovnikov.jpg" alt="Судно Владимир Шелковников">
-          <figcaption>Судно «Владимир Шелковников»</figcaption>
+          <figcaption data-en="The vessel Vladimir Shelkovnikov" data-ru="Судно «Владимир Шелковников»">The vessel Vladimir Shelkovnikov</figcaption>
         </figure>
 
         <figure class="photo-card photo-card-wide">
           <img src="assets/ships/river-view.jpg" alt="Речной вид на Лене">
-          <figcaption>Река, берег и суда как естественная среда этой истории</figcaption>
+          <figcaption data-en="The river, the shore and the ships as a natural environment for this history" data-ru="Река, берег и суда как естественная среда этой истории">The river, the shore and the ships as a natural environment for this history</figcaption>
         </figure>
       </div>
     </section>
 
     <section class="section sources-section" id="sources">
       <div class="section-heading">
-        <p class="section-mark">Источники</p>
-        <h2>Официальные документы и страницы, на которые опирается этот сайт</h2>
+        <p class="section-mark" data-en="Sources" data-ru="Источники">Sources</p>
+        <h2 data-en="Official documents and pages that this site relies on" data-ru="Официальные документы и страницы, на которые опирается этот сайт">Official documents and pages that this site relies on</h2>
       </div>
 
       <div class="sources-card">
-        <a href="http://kppk38.ru/sveden/istoriya_kolledzha/yubilej_100_let/" target="_blank" rel="noreferrer">Юбилейный раздел колледжа</a>
-        <a href="https://gorod-kirensk.ru/%D0%9C%D0%95%D0%9B%D0%AC%D0%9D%D0%98%D0%A7%D0%9D%D0%AB%D0%99/" target="_blank" rel="noreferrer">Материал о библиотеке-музее речников в микрорайоне Мельничный</a>
-        <a href="https://gorod-kirensk.ru/%D0%9F%D1%80%D0%BE%D0%B5%D0%BA%D1%82-%D0%93%D0%BE%D1%80%D0%BE%D0%B4-%D0%9E%D1%81%D1%82%D1%80%D0%BE%D0%B2" target="_blank" rel="noreferrer">Городской проект с упоминанием музея под открытым небом по истории Ленского речного флота</a>
-        <a href="http://kppk38.ru/images/cms/data/yubilei-100_let/nikolaj_sergeevich_veklyuch.doc" target="_blank" rel="noreferrer">Документ о Н. С. Веключе</a>
-        <a href="http://kppk38.ru/images/cms/data/yubilei-100_let/vladimir_viktorovich_verhoturov.doc" target="_blank" rel="noreferrer">Документ о В. В. Верхотурове</a>
-        <a href="http://kppk38.ru/images/cms/data/yubilei-100_let/aleksej_aleksandrovich_ineshin.doc" target="_blank" rel="noreferrer">Документ об А. А. Инёшине</a>
-        <a href="http://kppk38.ru/images/cms/data/yubilei-100_let/vladimir_vasil_evich_dmitriev.doc" target="_blank" rel="noreferrer">Документ о В. В. Дмитриеве</a>
-        <a href="http://kppk38.ru/images/cms/data/yubilei-100_let/vladimir_ivanovich_shelkovnikov.doc" target="_blank" rel="noreferrer">Документ о В. И. Шелковникове</a>
-        <a href="https://www.vsp.ru/2000/08/24/put-k-nagrade/" target="_blank" rel="noreferrer">Публикация «Путь к награде» о С. И. Тетерине</a>
-        <a href="https://www.vsp.ru/2002/11/13/eta-chernaya-zavist/" target="_blank" rel="noreferrer">Публикация с упоминанием капитана В. Р. Вольского</a>
+        <a href="http://kppk38.ru/sveden/istoriya_kolledzha/yubilej_100_let/" target="_blank" rel="noreferrer" data-en="College jubilee section" data-ru="Юбилейный раздел колледжа">College jubilee section</a>
+        <a href="https://gorod-kirensk.ru/%D0%9C%D0%95%D0%9B%D0%AC%D0%9D%D0%98%D0%A7%D0%9D%D0%AB%D0%99/" target="_blank" rel="noreferrer" data-en="Article about the river workers' library-museum in the Melnichniy district" data-ru="Материал о библиотеке-музее речников в микрорайоне Мельничный">Article about the river workers' library-museum in the Melnichniy district</a>
+        <a href="https://gorod-kirensk.ru/%D0%9F%D1%80%D0%BE%D0%B5%D0%BA%D1%82-%D0%93%D0%BE%D1%80%D0%BE%D0%B4-%D0%9E%D1%81%D1%82%D1%80%D0%BE%D0%B2" target="_blank" rel="noreferrer" data-en="City project mentioning the open-air museum of Lena River Fleet history" data-ru="Городской проект с упоминанием музея под открытым небом по истории Ленского речного флота">City project mentioning the open-air museum of Lena River Fleet history</a>
+        <a href="http://kppk38.ru/images/cms/data/yubilei-100_let/nikolaj_sergeevich_veklyuch.doc" target="_blank" rel="noreferrer" data-en="Document on N. S. Veklyuch" data-ru="Документ о Н. С. Веключе">Document on N. S. Veklyuch</a>
+        <a href="http://kppk38.ru/images/cms/data/yubilei-100_let/vladimir_viktorovich_verhoturov.doc" target="_blank" rel="noreferrer" data-en="Document on V. V. Verkhoturov" data-ru="Документ о В. В. Верхотурове">Document on V. V. Verkhoturov</a>
+        <a href="http://kppk38.ru/images/cms/data/yubilei-100_let/aleksej_aleksandrovich_ineshin.doc" target="_blank" rel="noreferrer" data-en="Document on A. A. Ineshin" data-ru="Документ об А. А. Инёшине">Document on A. A. Ineshin</a>
+        <a href="http://kppk38.ru/images/cms/data/yubilei-100_let/vladimir_vasil_evich_dmitriev.doc" target="_blank" rel="noreferrer" data-en="Document on V. V. Dmitriev" data-ru="Документ о В. В. Дмитриеве">Document on V. V. Dmitriev</a>
+        <a href="http://kppk38.ru/images/cms/data/yubilei-100_let/vladimir_ivanovich_shelkovnikov.doc" target="_blank" rel="noreferrer" data-en="Document on V. I. Shelkovnikov" data-ru="Документ о В. И. Шелковникове">Document on V. I. Shelkovnikov</a>
+        <a href="https://www.vsp.ru/2000/08/24/put-k-nagrade/" target="_blank" rel="noreferrer" data-en="Publication 'The Road to an Award' on S. I. Teterin" data-ru="Публикация «Путь к награде» о С. И. Тетерине">Publication 'The Road to an Award' on S. I. Teterin</a>
+        <a href="https://www.vsp.ru/2002/11/13/eta-chernaya-zavist/" target="_blank" rel="noreferrer" data-en="Publication mentioning captain V. R. Volsky" data-ru="Публикация с упоминанием капитана В. Р. Вольского">Publication mentioning captain V. R. Volsky</a>
       </div>
     </section>
   </main>
