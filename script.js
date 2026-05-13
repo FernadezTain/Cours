@@ -221,3 +221,115 @@ function animatePointerReset() {
 resizeCanvas();
 requestAnimationFrame(render);
 requestAnimationFrame(animatePointerReset);
+
+/* ── Language toggle with disperse animation ─────────────────── */
+(function () {
+  let currentLang = "en";
+  const btn = document.getElementById("langToggle");
+  const label = document.getElementById("langLabel");
+  const dCanvas = document.getElementById("disperseCanvas");
+  const dCtx = dCanvas.getContext("2d");
+
+  function resizeDisperseCanvas() {
+    dCanvas.width = window.innerWidth;
+    dCanvas.height = window.innerHeight;
+  }
+  window.addEventListener("resize", resizeDisperseCanvas);
+  resizeDisperseCanvas();
+
+  // Collect all translatable nodes
+  function getNodes() {
+    return Array.from(document.querySelectorAll("[data-en][data-ru]"));
+  }
+
+  // Particle system
+  const particles = [];
+
+  function spawnParticles() {
+    particles.length = 0;
+    const nodes = getNodes();
+    nodes.forEach((el) => {
+      const rect = el.getBoundingClientRect();
+      if (rect.width < 2 || rect.height < 2) return;
+      const count = Math.max(4, Math.floor((rect.width * rect.height) / 380));
+      for (let i = 0; i < count; i++) {
+        const hues = [200, 210, 30, 45, 190];
+        particles.push({
+          x: rect.left + Math.random() * rect.width,
+          y: rect.top + Math.random() * rect.height + window.scrollY,
+          vx: (Math.random() - 0.5) * 4.5,
+          vy: (Math.random() - 0.5) * 4.5 - 1.2,
+          size: 1.5 + Math.random() * 3,
+          alpha: 0.72 + Math.random() * 0.28,
+          decay: 0.018 + Math.random() * 0.022,
+          hue: hues[Math.floor(Math.random() * hues.length)],
+          sat: 40 + Math.random() * 50,
+          lit: 55 + Math.random() * 30,
+        });
+      }
+    });
+  }
+
+  let animId = null;
+  let phase = "idle"; // idle | dissolve | settle
+
+  function animateParticles(ts) {
+    dCtx.clearRect(0, 0, dCanvas.width, dCanvas.height);
+    let alive = false;
+    particles.forEach((p) => {
+      if (p.alpha <= 0) return;
+      alive = true;
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy -= 0.04;
+      p.vx *= 0.97;
+      p.alpha -= p.decay;
+      dCtx.globalAlpha = Math.max(0, p.alpha);
+      dCtx.fillStyle = `hsl(${p.hue},${p.sat}%,${p.lit}%)`;
+      dCtx.beginPath();
+      dCtx.arc(p.x - window.scrollX, p.y - window.scrollY, p.size, 0, Math.PI * 2);
+      dCtx.fill();
+    });
+    dCtx.globalAlpha = 1;
+    if (alive) {
+      animId = requestAnimationFrame(animateParticles);
+    } else {
+      dCanvas.classList.remove("active");
+      phase = "idle";
+    }
+  }
+
+  function switchLang(to) {
+    const nodes = getNodes();
+    // Step 1: dissolve old text
+    nodes.forEach((el) => el.classList.add("dissolve-text", "dissolving"));
+
+    // Step 2: spawn particles and start animation
+    spawnParticles();
+    dCanvas.classList.add("active");
+    if (animId) cancelAnimationFrame(animId);
+    animId = requestAnimationFrame(animateParticles);
+
+    // Step 3: swap text mid-animation
+    setTimeout(() => {
+      nodes.forEach((el) => {
+        el.textContent = el.getAttribute("data-" + to);
+        el.classList.remove("dissolving");
+      });
+      currentLang = to;
+      if (to === "ru") {
+        label.textContent = "Translate to English";
+        document.documentElement.lang = "ru";
+      } else {
+        label.textContent = "Перевести на русский";
+        document.documentElement.lang = "en";
+      }
+    }, 310);
+  }
+
+  btn.addEventListener("click", () => {
+    if (phase !== "idle") return;
+    phase = "dissolve";
+    switchLang(currentLang === "en" ? "ru" : "en");
+  });
+})();
