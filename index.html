@@ -586,7 +586,10 @@
       wrap.style.transform    = 'none';
       wrap.style.visibility   = 'visible';
 
+      // Компенсируем ширину скроллбара чтобы контент не прыгал
+      const scrollbarW = window.innerWidth - document.documentElement.clientWidth;
       document.body.style.overflow    = 'hidden';
+      document.body.style.paddingRight = scrollbarW + 'px';
       document.body.style.touchAction = 'none';
 
       lb.classList.add('is-open');
@@ -609,6 +612,7 @@
         img.src = '';
         wrap.style.visibility = 'hidden';
         document.body.style.overflow    = '';
+        document.body.style.paddingRight = '';
         document.body.style.touchAction = '';
         isAnimating = false;
       });
