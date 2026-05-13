@@ -222,11 +222,47 @@ resizeCanvas();
 requestAnimationFrame(render);
 requestAnimationFrame(animatePointerReset);
 
+/* ── Sticky topbar appearance ─────────────────────────────────── */
+(function () {
+  const topbar = document.querySelector(".topbar");
+  if (!topbar) return;
+
+  // Появляется сразу с анимацией при загрузке
+  requestAnimationFrame(() => {
+    setTimeout(() => topbar.classList.add("is-visible"), 80);
+  });
+
+  let lastScroll = window.scrollY;
+
+  window.addEventListener("scroll", () => {
+    const current = window.scrollY;
+    if (current > 40) {
+      topbar.classList.add("is-scrolled");
+    } else {
+      topbar.classList.remove("is-scrolled");
+    }
+    lastScroll = current;
+  }, { passive: true });
+})();
+
 /* ── Language toggle with disperse animation ─────────────────── */
 (function () {
   let currentLang = "en";
   const btn = document.getElementById("langToggle");
   const label = document.getElementById("langLabel");
+
+  // Expand/collapse based on scroll position
+  function updateBtnState() {
+    const atTop = window.scrollY < 80;
+    if (atTop) {
+      btn.classList.add("is-expanded");
+    } else {
+      btn.classList.remove("is-expanded");
+    }
+  }
+  window.addEventListener("scroll", updateBtnState, { passive: true });
+  // Initial state — expand after a short delay for entry feel
+  setTimeout(() => updateBtnState(), 300);
   const dCanvas = document.getElementById("disperseCanvas");
   const dCtx = dCanvas.getContext("2d");
 
@@ -299,6 +335,13 @@ requestAnimationFrame(animatePointerReset);
     }
   }
 
+  function shimmer() {
+    btn.classList.remove("shimmer");
+    void btn.offsetWidth; // reflow to restart animation
+    btn.classList.add("shimmer");
+    setTimeout(() => btn.classList.remove("shimmer"), 600);
+  }
+
   function switchLang(to) {
     const nodes = getNodes();
     // Step 1: dissolve old text
@@ -310,7 +353,7 @@ requestAnimationFrame(animatePointerReset);
     if (animId) cancelAnimationFrame(animId);
     animId = requestAnimationFrame(animateParticles);
 
-    // Step 3: swap text mid-animation
+    // Step 3: swap text mid-animation + shimmer on button
     setTimeout(() => {
       nodes.forEach((el) => {
         el.textContent = el.getAttribute("data-" + to);
@@ -324,6 +367,7 @@ requestAnimationFrame(animatePointerReset);
         label.textContent = "Translate to Russian";
         document.documentElement.lang = "en";
       }
+      shimmer();
     }, 310);
   }
 
