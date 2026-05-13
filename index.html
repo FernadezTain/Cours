@@ -121,6 +121,10 @@
       transform-origin: center center;
       will-change: transform, border-radius, opacity;
       box-shadow: 0 32px 80px rgba(0,0,0,0.55);
+      visibility: hidden;
+    }
+    #lightbox.is-open #lightbox-img-wrap {
+      visibility: visible;
     }
     #lightbox-img-wrap img {
       display: block;
@@ -580,6 +584,7 @@
       wrap.style.height       = rect.height + 'px';
       wrap.style.borderRadius = '16px';
       wrap.style.transform    = 'none';
+      wrap.style.visibility   = 'visible';
 
       document.body.style.overflow    = 'hidden';
       document.body.style.touchAction = 'none';
@@ -602,6 +607,7 @@
       lb.classList.remove('is-open');
       animateRect(cur, sourceRect, 20, 16, () => {
         img.src = '';
+        wrap.style.visibility = 'hidden';
         document.body.style.overflow    = '';
         document.body.style.touchAction = '';
         isAnimating = false;
