@@ -538,36 +538,48 @@
       })(start);
     }
 
+    // aspect ratio реального изображения (заполняется после загрузки)
+    let imgNaturalW = 1, imgNaturalH = 1;
+
     function getTargetRect() {
       const vw = window.innerWidth, vh = window.innerHeight;
       const pad = Math.min(vw, vh) * 0.04;
       const maxW = vw - pad * 2, maxH = vh - pad * 2;
-      const aspect = sourceRect.width / sourceRect.height;
+      // Используем реальный aspect ratio картинки, не карточки
+      const aspect = imgNaturalW / imgNaturalH;
       let w, h;
       if (maxW / maxH > aspect) { h = maxH; w = h * aspect; }
       else                      { w = maxW; h = w / aspect; }
       return { left: (vw - w) / 2, top: (vh - h) / 2, width: w, height: h };
     }
 
-    function open(card) {
+    function open(el) {
       if (isAnimating) return;
+
+      // Поддержка и .photo-card и .archive-head-photo
+      const cardImg = el.querySelector('img');
+      if (!cardImg || !cardImg.src || cardImg.naturalWidth === 0) return; // не открывать если картинка не загрузилась
+
       isAnimating = true;
 
-      const cardImg = card.querySelector('img');
-      const fig     = card.querySelector('figcaption');
+      const fig = el.querySelector('figcaption') || el.closest('article')?.querySelector('h3');
       img.src = cardImg.src;
       img.alt = cardImg.alt;
       caption.textContent = fig ? fig.textContent : '';
 
-      const rect = card.getBoundingClientRect();
+      // Сохраняем реальный размер картинки
+      imgNaturalW = cardImg.naturalWidth  || 1;
+      imgNaturalH = cardImg.naturalHeight || 1;
+
+      const rect = el.getBoundingClientRect();
       sourceRect = { left: rect.left, top: rect.top, width: rect.width, height: rect.height };
 
-      wrap.style.left = rect.left + 'px';
-      wrap.style.top  = rect.top  + 'px';
-      wrap.style.width  = rect.width  + 'px';
-      wrap.style.height = rect.height + 'px';
+      wrap.style.left         = rect.left + 'px';
+      wrap.style.top          = rect.top  + 'px';
+      wrap.style.width        = rect.width  + 'px';
+      wrap.style.height       = rect.height + 'px';
       wrap.style.borderRadius = '16px';
-      wrap.style.transform = 'none';
+      wrap.style.transform    = 'none';
 
       document.body.style.overflow    = 'hidden';
       document.body.style.touchAction = 'none';
@@ -596,7 +608,13 @@
       });
     }
 
+    // Галерея судов
     document.querySelectorAll('.photo-card').forEach(c => c.addEventListener('click', () => open(c)));
+    // Портреты людей в архиве
+    document.querySelectorAll('.archive-head-photo').forEach(c => {
+      c.style.cursor = 'zoom-in';
+      c.addEventListener('click', () => open(c));
+    });
     backdrop.addEventListener('click', close);
     closeBtn.addEventListener('click', close);
     document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
