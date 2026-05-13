@@ -106,7 +106,7 @@ a {
 
 .hero-layout {
   display: grid;
-  grid-template-columns: 1.1fr 0.42fr 0.95fr;
+  grid-template-columns: 1fr 0.55fr 1fr;
   gap: 22px;
   align-items: start;
   padding-top: 34px;
